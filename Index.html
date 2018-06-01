@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Test</title>
+</head>
+<body>
+
+    <div>
+        <h2>All Customers</h2>
+        <ul id="customers" />
+    </div>
+    <div>
+        <h2>Search Customer by ID</h2>
+        <input type="text" id="customerId" size="5" />
+        <input type="button" value="Search" onclick="findCustomer();" />
+        <input type="button" value="Search Transcation" onclick="findCustomerTransaction();" />
+        <p id="oneCustomer" />
+        <p id="oneCustomerTransaction" />
+    </div>
+    <br />
+    <hr>
+    <div>
+        <h2>All Tansactions</h2>
+        <ul id="transactions" />
+    </div>
+    <div>
+        <h2>Search Transaction by ID</h2>
+        <input type="text" id="transactionId" size="5" />
+        <input type="button" value="Search" onclick="findTransaction();" />
+        <p id="oneTransaction" />
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        var uriCustomer = 'api/Customers';
+        var uriTransaction = 'api/Transactions';
+
+        $(document).ready(function () {
+            // Send an AJAX request
+            $.getJSON(uriCustomer)
+                .done(function (data) {
+                    $.each(data, function (key, item) {
+                        $('<li>', { text: formatCustomer(item) }).appendTo($('#customers'));
+                    });
+                })
+                .fail(function (jqXHR, textStatus, err) {
+                    $('#customers').text('Error: ' + err);
+                });
+
+            $.getJSON(uriTransaction)
+                .done(function (data) {
+                    $.each(data, function (key, item) {
+                        $('<li>', { text: formatTransaction(item) }).appendTo($('#transactions'));
+                    });
+                })
+                .fail(function (jqXHR, textStatus, err) {
+                    $('#transactions').text('Error: ' + err);
+                });
+
+        });
+
+        function formatCustomer(item) {
+            return item.FirstName + ' ' + item.LastName + ' ' + item.AccountNumber + ' : $' + item.AccountBalance
+                        + ' / ' + item.ContactInformation;
+        }
+
+        function findCustomer() {
+            var id = $('#customerId').val();
+            $.getJSON(uriCustomer + '/' + id)
+                .done(function (data) {
+                    $('#oneCustomer').text(formatCustomer(data));
+                })
+                .fail(function (jqXHR, textStatus, err) {
+                    $('#oneCustomer').text('Error: ' + err);
+                });
+        }
+
+        function formatCustomerTransaction(item) {
+            var date = new Date(item.Date);
+            return item.Customer.AccountNumber + ' ' + item.Customer.AccountName + ': ' + date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
+                + ': $' + item.Value + ' ' + item.DebitCredit;
+        }
+
+        function findCustomerTransaction() {
+            var id = $('#customerId').val();
+            $.getJSON(uriCustomer + '/' + id + '/Transactions')
+                .done(function (data) {
+                    $('#oneCustomerTransaction').text('');
+                    $.each(data, function (key, item) {
+                        $('<li>', { text: formatCustomerTransaction(item) }).appendTo($('#oneCustomerTransaction'));
+                    });
+                })
+                .fail(function (jqXHR, textStatus, err) {
+                    $('#oneCustomerTransaction').text('Error: ' + err);
+                });
+        }
+
+
+        function formatTransaction(item) {
+            var date = new Date(item.Date);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString() + ': $' + item.Value + ' ' + item.DebitCredit;
+        }
+
+        function findTransaction() {
+            var id = $('#transactionId').val();
+            $.getJSON(uriTransaction + '/' + id)
+                .done(function (data) {
+                    $('#oneTransaction').text(formatCustomerTransaction(data));
+                })
+                .fail(function (jqXHR, textStatus, err) {
+                    $('#oneTransaction').text('Error: ' + err);
+                });
+        }
+
+    </script>
+</body>
+</html>
